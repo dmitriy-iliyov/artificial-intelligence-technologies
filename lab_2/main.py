@@ -22,7 +22,7 @@ train_answ = np.array([0, 0, 0, 1])
 test_data = train_data
 test_answ = train_answ
 
-learnable_p = perceptrons.LearnableSLP(activation_func.activation_elu)
+learnable_p = perceptrons.LearnableSLP(activation_func.elu)
 learnable_p.summary()
 learnable_p.fit(train_data, train_answ)
 learnable_p.summary()

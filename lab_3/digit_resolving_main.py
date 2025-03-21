@@ -1,7 +1,8 @@
 import numpy as np
 import tensorflow_datasets as tfds
-from tools import activation_func
-from lab_2 import perceptrons
+from lab_2.perceptrons import Model, BinaryMLP, DenseLayer
+from lab_7.cnn import FlattenLayer
+from tools import activation_func as af, weights_init as wi, loss_func as lf
 
 
 def load_data():
@@ -60,7 +61,13 @@ train_data, train_labels, test_data, test_labels = prepared_1d_data()
 # model.fit(train_data, train_labels, epochs=5, batch_size=32)
 # model.predict(test_data, test_labels, 10)
 
-perceptron = perceptrons.MultiCategoricalMLP(28 * 28, [128], activation_func.activation_relu, 10, activation_func.activation_sigmoid)
-perceptron.fit(train_data, train_labels, 32, 5, 0.001)
-perceptron.evaluate(test_data, test_labels, 0.1)
-# perceptron.predict()
+mlp = Model([
+    FlattenLayer(),
+    DenseLayer(784, 128, af.relu, wi.default_init),
+    DenseLayer(128, 10, af.softmax, wi.default_init)
+])
+mlp.compile(lf.cross_entropy)
+mlp.fit(train_data, train_labels, epochs=5, batch_size=32, learning_rate=0.01)
+print(mlp.evaluate(test_data, test_labels))
+print(np.argmax(test_labels[1]))
+print(np.argmax(mlp.predict(test_data[1].reshape(1, -1))[0]))

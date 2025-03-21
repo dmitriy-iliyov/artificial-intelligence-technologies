@@ -1,17 +1,29 @@
 import numpy as np
 
-import padding
+from tools import padding
 
 
-def max_p(input_matrix, pool_size=(2, 2)):
+def max_p(input_matrix, pool_size=(2, 2), stride=None):
     i_shape = input_matrix.shape
     ph, pw = pool_size
-    h, w = i_shape[0] // ph, i_shape[1] // pw
+
+    if stride is None:
+        stride = max(ph, pw)
+
+    h = (i_shape[0] - ph) // stride + 1
+    w = (i_shape[1] - pw) // stride + 1
+
     pooled_matrix = np.zeros((h, w))
 
-    for i in range(0, i_shape[0], ph):
-        for j in range(0, i_shape[1], pw):
-            pooled_matrix[i//ph, j//pw] = np.max(input_matrix[i:i + ph, j:j + pw])
+    for i in range(0, h):
+        for j in range(0, w):
+            start_i = i * stride
+            start_j = j * stride
+            end_i = start_i + ph
+            end_j = start_j + pw
+
+            pooled_matrix[i, j] = np.max(input_matrix[start_i:end_i, start_j:end_j])
+
     return pooled_matrix
 
 
@@ -86,25 +98,48 @@ def cognitron_max_p_v2(input_matrix, pool_size=(2, 2)):
     return pooled_matrix, max_indexes
 
 
-def average_p(input_matrix, pool_size=(2, 2)):
+def average_p(input_matrix, pool_size=(2, 2), stride=None):
     i_shape = input_matrix.shape
     ph, pw = pool_size
-    h, w = i_shape[0] // ph, i_shape[1] // pw
+
+    if stride is None:
+        stride = max(ph, pw)
+
+    h = (i_shape[0] - ph) // stride + 1
+    w = (i_shape[1] - pw) // stride + 1
+
     pooled_matrix = np.zeros((h, w))
 
-    for i in range(0, i_shape[0], ph):
-        for j in range(0, i_shape[1], pw):
-            pooled_matrix[i//ph, j//pw] = np.mean(input_matrix[i:i + ph, j:j + pw])
+    for i in range(h):
+        for j in range(w):
+            start_i = i * stride
+            start_j = j * stride
+            end_i = start_i + ph
+            end_j = start_j + pw
+            pooled_matrix[i, j] = np.mean(input_matrix[start_i:end_i, start_j:end_j])
+
     return pooled_matrix
 
 
-def min_p(input_matrix, pool_size=(2, 2)):
+def min_p(input_matrix, pool_size=(2, 2), stride=None):
+
     i_shape = input_matrix.shape
     ph, pw = pool_size
-    h, w = i_shape[0] // ph, i_shape[1] // pw
+
+    if stride is None:
+        stride = max(ph, pw)
+
+    h = (i_shape[0] - ph) // stride + 1
+    w = (i_shape[1] - pw) // stride + 1
+
     pooled_matrix = np.zeros((h, w))
 
-    for i in range(0, i_shape[0], ph):
-        for j in range(0, i_shape[1], pw):
-            pooled_matrix[i//ph, j//pw] = np.min(input_matrix[i:i + ph, j:j + pw])
+    for i in range(h):
+        for j in range(w):
+            start_i = i * stride
+            start_j = j * stride
+            end_i = start_i + ph
+            end_j = start_j + pw
+            pooled_matrix[i, j] = np.min(input_matrix[start_i:end_i, start_j:end_j])
+
     return pooled_matrix

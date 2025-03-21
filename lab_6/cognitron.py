@@ -93,7 +93,7 @@ class CognitronLayer:
             y = (activating_impuls / weighed_inhibiting_impuls) - 1
         else:
             y = (activating_impuls - weighed_inhibiting_impuls) / (1 + weighed_inhibiting_impuls)
-        return af.activation_relu(y), inhibiting_impuls, activating_impuls
+        return af.relu(y), inhibiting_impuls, activating_impuls
 
     def __inhibit(self, matrix):
         return pooling.cognitron_max_p_v1(matrix, self.__competition_area_shape)

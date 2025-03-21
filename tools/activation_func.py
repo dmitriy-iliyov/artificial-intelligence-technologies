@@ -5,18 +5,18 @@ def __clean_input(x):
     return np.nan_to_num(x, nan=0.0, posinf=1e10, neginf=-1e10)
 
 
-def activation_threshold(x):
+def threshold(x):
     return np.where(np.asarray(x) >= 0, 1, 0)
 
 
-def activation_relu(x, df=False):
+def relu(x, df=False):
     x = np.asarray(x)
     if df:
         return np.where(x > 0, 1, 0)
     return np.maximum(0, x)
 
 
-def activation_leaky_relu(x, alpha=0.01, df=False):
+def leaky_relu(x, alpha=0.01, df=False):
     x = np.asarray(x)
     x = __clean_input(x)
     if df:
@@ -24,15 +24,15 @@ def activation_leaky_relu(x, alpha=0.01, df=False):
     return np.where(x > 0, x, alpha * x)
 
 
-def activation_elu(x, alpha=1.0, df=False):
+def elu(x, alpha=1.0, df=False):
     x = np.asarray(x)
     x = __clean_input(x)
     if df:
-        return np.where(x > 0, 1, activation_elu(x, alpha) + alpha)
+        return np.where(x > 0, 1, elu(x, alpha) + alpha)
     return np.where(x > 0, x, alpha * (np.exp(x) - 1))
 
 
-def activation_prelu(x, alpha=0.01, df=False):
+def prelu(x, alpha=0.01, df=False):
     x = np.asarray(x)
     x = __clean_input(x)
     if df:
@@ -40,7 +40,7 @@ def activation_prelu(x, alpha=0.01, df=False):
     return np.where(x > 0, x, alpha * x)
 
 
-def activation_tanh(x, df=False):
+def tanh(x, df=False):
     x = np.asarray(x)
     tanh_x = np.tanh(x)
     if df:
@@ -48,9 +48,12 @@ def activation_tanh(x, df=False):
     return tanh_x
 
 
-def activation_sigmoid(x, df=False):
+def sigmoid(x, df=False):
     x = np.asarray(x)
-    sigmoid = 1 / (1 + np.exp(-x))
+    # sigmoid = 1 / (1 + np.exp(-x))
+    sigmoid = np.where(x >= 0,
+             1 / (1 + np.exp(-x)),
+             np.exp(x) / (1 + np.exp(x)))
     if df:
         return sigmoid * (1 - sigmoid)
     return sigmoid
@@ -70,6 +73,15 @@ def softmax(x, df=False):
                         jacobian_matrix[i, j, k] = s[i, j] * (1 - s[i, j])
                     else:
                         jacobian_matrix[i, j, k] = -s[i, j] * s[i, k]
-        return jacobian_matrix
+        return jacobian_to_aggregated(jacobian_matrix)
 
     return softmax_output
+
+
+def jacobian_to_aggregated(jacobian_matrix):
+    batch_size, n, _ = jacobian_matrix.shape
+    aggregated_jacobian = np.zeros((batch_size, n))
+
+    for i in range(batch_size):
+        aggregated_jacobian[i] = np.diagonal(jacobian_matrix[i])
+    return aggregated_jacobian
